@@ -25,7 +25,7 @@ SECRET_KEY = '2l8q_h89t*tz5gwoz#6biuu5m*6jen)rmf5a9vw#7-5v0nwlud'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["bezilpy.pythonanywhere.com", "127.0.0.1"]
 
 
 # Application definition
