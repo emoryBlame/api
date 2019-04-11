@@ -1,7 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic import ListView, View
 from django.http.response import JsonResponse
-
+import requests
+from django.urls import reverse
+from django.contrib import messages
 
 from .models import Payment
 # Create your views here.
@@ -9,12 +11,12 @@ from .models import Payment
 default_payment = {
     "status": "new",
     "price_currency": "USD",
-    "price_amount": "0.02",
+    "price_amount": "1.00",
     "receive_currency": "EUR",
     #"receive_amount": "",
     "order_id": "111",
     #"payment_url": "https://sandbox.coingate.com/pay/",
-    "token": "cSX-bZbWyDyhrSaWD868NZzVwt95_dy1rR-DsCof"
+    "token": "fzWr8vzbSRNJq2MCxux2iw9-DMtjWXkxZMvhxmn6" #fzWr8vzbSRNJq2MCxux2iw9-DMtjWXkxZMvhxmn6   cSX-bZbWyDyhrSaWD868NZzVwt95_dy1rR-DsCof
 }
 
 
@@ -23,13 +25,7 @@ class LookingForward(ListView):
     model = Payment
     template_name = "looking_forward.html"
     ordering = "-created_at"
-
-    # def get_context_data(self, *args, **kwargs):
-    #     context = self.get_context_data(*args, **kwargs)
-    #     current_payment = self.model.objects.create(**default_payment)
-    #     current_payment.payment_url += str
-    #     context["new"] = current_payment
-    #     current_payment["payment_url"] += 
+    context_object_name = "payments"
 
 
 class AjaxResponseView(View):
@@ -49,6 +45,37 @@ class PaymentAjaxView(AjaxResponseView):
 
     def get_data(self, request, *args, **kwargs):
         payment = Payment.objects.create(**default_payment)
+        payment.save()
         #payment.
-        context = {"payment": payment.invoice_json()}
+        context = payment.invoice_json()
+        headers = {"Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": "Token fzWr8vzbSRNJq2MCxux2iw9-DMtjWXkxZMvhxmn6"}
+        r = requests.post("https://api-sandbox.coingate.com/v2/orders/", data=context, headers=headers)
+        if r.status_code:
+            data = payment.remove_no_necessary_response_data(r.json())
+            Payment.objects.filter(pk=payment.pk).update(**data)
+            p = Payment.objects.get(pk=payment.pk)
+            context = p.as_json()
+            print(context)
         return context
+
+
+class PaymentAjaxSuccessView(View):
+
+    def dispatch(self, request, *args, **kwargs):
+        print("any data?",request.POST, request.GET, args, kwargs)
+        payments = Payment.objects.filter(status="new") 
+        headers = {"Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": "Token fzWr8vzbSRNJq2MCxux2iw9-DMtjWXkxZMvhxmn6"}
+        for payment in payments:
+            r = requests.post("https://api.coingate.com/v2/orders/{}/checkout"\
+                .format(payment.order_id), data={"pay_currency": "BTC"} ,headers=headers)
+            if r.status_code:
+                data = payment.remove_no_necessary_response_data(r.json())
+                Payment.objects.filter(pk=payment.pk).update(**data)
+                p = Payment.objects.get(pk=payment.pk)
+                context = p.as_json()
+                print(context)
+        messages.success(request, "Success payment!")
+        return redirect(reverse("looking-forward"))
+

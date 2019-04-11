@@ -11,8 +11,8 @@ class Payment(models.Model):
     receive_amount = models.CharField(max_length=50, blank=True)
     created_at = models.DateTimeField(auto_now=True)
     order_id = models.IntegerField()
-    success_url = models.CharField(max_length=200, default="https://127.0.0.1:8000/invoice/success/")
-    cancel_url = models.CharField(max_length=200, default="https://127.0.0.1:8000/")
+    success_url = models.CharField(max_length=200, default="http://127.0.0.1:8000/success/")
+    cancel_url = models.CharField(max_length=200, default="http://127.0.0.1:8000/")
     payment_url = models.CharField(max_length=200)
     token = models.CharField(max_length=200)
     message = models.CharField(max_length=200, blank=True)
@@ -40,3 +40,11 @@ class Payment(models.Model):
             if key in keys:
                 context[key] = value
         return context
+
+    def remove_no_necessary_response_data(self, json):
+        context = {}
+        for key,value in json.items():
+            if key in self.__dict__.keys():
+                context[key] = value
+        return context
+

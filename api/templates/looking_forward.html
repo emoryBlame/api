@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load i18n %}
     <meta charset="UTF-8">
     <title>Looking forward</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script type="text/javascript">
@@ -37,9 +39,10 @@
                 type: "POST",
                 data: {},
                 success: function(data){
-                    if (data["payment"]) {
+                    if (data) {
                         console.log("Success:", data);
-                        send_a_invoice(data["payment"]);
+                        window.location.href = data["payment_url"];
+                        //send_a_invoice(data["payment"]);
                     } else {
                         console.log("Something goes wrong, while payment was created, there are data: ", data);
                     }
@@ -49,39 +52,49 @@
                 }  
             });
         }
-
-        function send_a_invoice(data) {
-            $.ajax({
-                url: "https://sandbox.coingate.com/pay/",
-                dataType: "json",
-                type: "POST",
-                data: {data},
-                beforeSend: function(request) {
-                    request.setRequestHeader("Access-Control-Allow-Origin", "http://127.0.0.1:8000");
-                    request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-                  },
-                success: function(data){
-                    console.log("Successfully paid: ", data);
-                    // if (data["payment"]) {
-                    //     send_a_invoice(data["payment"]);
-                    // } else {
-                    //     console.log("Something goes wrong, while payment was created, there are data: ", data);
-                    // }
-                },
-                errors: function(err) {
-                    console.log("Something goes wrong, while invoice, there are errors: ", err);
-                }  
-            });
-        }
     </script>
 </head>
 <body>
     {% block main %}
         <div class="container">
             <div class="row">
-                <a onclick="make_a_payment();" class="btn btn-dark">Send new payment</a> 
+                <p>
+                <a href="/ru/" class="btn btn-primary">Ru</a>
+                <a href="/en/" class="btn btn-primary">En</a>
+                </p>
             </div>
-        </div>
+            <p>
+                {% load i18n %}
+                <a onclick="make_a_payment();" class="btn btn-primary">
+                    {% trans "Send new payment" %}
+                </a>
+            </p> 
+            <p>Payments:</p>
+            <table class="table">
+                <tr>
+                    <th>id</th>
+                    <th>Status</th>
+                    <th>price_currency</th>
+                    <th>price_amount</th>
+                    <th>receive_currency</th>
+                    <th>receive_amount</th>
+                    <th>created_at</th>
+                </tr>
+                {% for pay in payments %}
+                    <tr>
+                        <td>
+                            {{pay.id}}
+                        </td>
+                        <td>{{pay.status}}</td>
+                        <td>{{pay.price_currency}}</td>
+                        <td>{{pay.price_amount}}</td>
+                        <td>{{pay.receive_currency}}</td>
+                        <td>{{pay.receive_amount}}</td>
+                        <td>{{pay.created_at}}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+            </div>
     {% endblock %}
 </body>
 </html>

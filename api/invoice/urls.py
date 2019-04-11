@@ -15,9 +15,10 @@ Including another URLconf
 """
 from django.urls import path
 
-from .views import PaymentAjaxView, LookingForward
+from .views import PaymentAjaxView, LookingForward, PaymentAjaxSuccessView
 
 urlpatterns = [
     path('make_a_payment/', PaymentAjaxView.as_view(), name="make_a_payment"),
+    path('success/', PaymentAjaxSuccessView.as_view(), name="success-invoice"),
     path('', LookingForward.as_view(), name="looking-forward"),
 ]
