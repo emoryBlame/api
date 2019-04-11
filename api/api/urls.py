@@ -19,7 +19,6 @@ from django.conf.urls.i18n import i18n_patterns
 from django.utils.translation import ugettext_lazy as _
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('i18n/', include('django.conf.urls.i18n')),
     #path('', include("invoice.urls")),
 ]

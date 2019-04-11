@@ -39,10 +39,9 @@
                 type: "POST",
                 data: {},
                 success: function(data){
-                    if (data) {
+                    if (data["payment_url"] != undefined) {
                         console.log("Success:", data);
                         window.location.href = data["payment_url"];
-                        //send_a_invoice(data["payment"]);
                     } else {
                         console.log("Something goes wrong, while payment was created, there are data: ", data);
                     }

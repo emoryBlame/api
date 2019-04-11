@@ -46,17 +46,18 @@ class PaymentAjaxView(AjaxResponseView):
     def get_data(self, request, *args, **kwargs):
         payment = Payment.objects.create(**default_payment)
         payment.save()
-        #payment.
         context = payment.invoice_json()
         headers = {"Content-Type": "application/x-www-form-urlencoded",
             "Authorization": "Token fzWr8vzbSRNJq2MCxux2iw9-DMtjWXkxZMvhxmn6"}
         r = requests.post("https://api-sandbox.coingate.com/v2/orders/", data=context, headers=headers)
         if r.status_code:
             data = payment.remove_no_necessary_response_data(r.json())
-            Payment.objects.filter(pk=payment.pk).update(**data)
-            p = Payment.objects.get(pk=payment.pk)
-            context = p.as_json()
-            print(context)
+            pay = Payment.objects.filter(pk=payment.pk).update(**data)
+            try:
+                p = Payment.objects.get(pk=payment.pk)
+                context = p.as_json()
+            except Exception as exc:
+                print("Can't get payment by id")
         return context
 
 
@@ -75,7 +76,6 @@ class PaymentAjaxSuccessView(View):
                 Payment.objects.filter(pk=payment.pk).update(**data)
                 p = Payment.objects.get(pk=payment.pk)
                 context = p.as_json()
-                print(context)
-        messages.success(request, "Success payment!")
+        #messages.success(request, "Success payment!")
         return redirect(reverse("looking-forward"))
 

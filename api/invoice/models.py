@@ -34,7 +34,7 @@ class Payment(models.Model):
         keys = [
             "order_id", "price_amount", "price_currency",
             "receive_currency", "success_url", "cancel_url",
-            "token"
+            "token", "id"
         ]
         for key, value in self.__dict__.items():
             if key in keys:
