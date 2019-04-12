@@ -46,18 +46,20 @@ class PaymentAjaxView(AjaxResponseView):
     def get_data(self, request, *args, **kwargs):
         payment = Payment.objects.create(**default_payment)
         payment.save()
+        print(payment.pk)
         context = payment.invoice_json()
         headers = {"Content-Type": "application/x-www-form-urlencoded",
             "Authorization": "Token fzWr8vzbSRNJq2MCxux2iw9-DMtjWXkxZMvhxmn6"}
         r = requests.post("https://api-sandbox.coingate.com/v2/orders/", data=context, headers=headers)
         if r.status_code:
             data = payment.remove_no_necessary_response_data(r.json())
-            pay = Payment.objects.filter(pk=payment.pk).update(**data)
+            pay = Payment.objects.filter(pk=payment.id).update(**data)
+            print(payment.id)
             try:
-                p = Payment.objects.get(pk=payment.pk)
+                p = Payment.objects.get(pk=payment.id)
                 context = p.as_json()
             except Exception as exc:
-                print("Can't get payment by id")
+                print("Can't get payment by id", exc)
         return context
 
 
